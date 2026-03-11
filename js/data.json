@@ -2,7 +2,7 @@
   {
     "idSerie": "serie-01",
     "nombreSerie": "Love Lab",
-    "portada": "../assets/portada-maroon-5/ep-1.jpg",
+    "portada": "./assets/love-lab.jpg",
     "episodios": [
       {
         "idVideo": "ax-01",
@@ -27,7 +27,7 @@
   {
     "idSerie": "serie-02",
     "nombreSerie": "test 1",
-    "portada": "../assets/portada-juanes/ep-1.jpg",
+    "portada": "./assets/portada-juanes/ep-1.jpg",
     "episodios": [
       {
         "idVideo": "sy-01",
