@@ -26,6 +26,10 @@ const tiempoTexto = document.getElementById('tiempo-texto');
 const btnFullscreen = document.getElementById('btn-fullscreen');
 const controlesVideo = document.getElementById('controles-video'); // Seleccionamos la barra completa
 
+const loader = document.getElementById('loader');
+const indicadorRetroceder = document.getElementById('indicador-retroceder');
+const indicadorAdelantar = document.getElementById('indicador-adelantar');
+
 let catalogo = [];
 let serieActivaIndex = 0;
 let episodioActivoIndex = 0;
@@ -76,11 +80,11 @@ function abrirSerie(sIndex) {
   // --- NUEVA LÍNEA DE SEGURIDAD ---
   // Si el número guardado es mayor a los episodios que realmente existen, lo reiniciamos a 0
   if (eIndex >= catalogo[sIndex].episodios.length) {
-      eIndex = 0;
+    eIndex = 0;
   }
 
   cargarVideo(sIndex, eIndex);
-  reproductor.play(); 
+  reproductor.play();
 }
 
 // Botón para salir del video y volver a las portadas
@@ -91,7 +95,7 @@ btnVolverInicio.addEventListener('click', () => {
 });
 
 // --- 4. LÓGICA DEL REPRODUCTOR ---
-function cargarVideo(sIndex, eIndex) {
+function cargarVideo(sIndex, eIndex, iniciarDesdeCero = false) {
   serieActivaIndex = sIndex;
   episodioActivoIndex = eIndex;
   const episodioActual = catalogo[sIndex].episodios[eIndex];
@@ -99,38 +103,56 @@ function cargarVideo(sIndex, eIndex) {
   pausaSerie.textContent = catalogo[sIndex].nombreSerie;
   pausaCapitulo.textContent = episodioActual.titulo;
 
-  reproductor.src = episodioActual.url;
-
-  // Guardar en memoria qué episodio estamos viendo
+  // Actualizamos la memoria de qué capítulo general vamos
   localStorage.setItem(`ep_activo_serie_${sIndex}`, eIndex);
 
-  // Recuperar el minuto exacto del video
-  const tiempoGuardado = localStorage.getItem(`tiempo_${episodioActual.idVideo}`);
-  if (tiempoGuardado) {
-    reproductor.currentTime = parseFloat(tiempoGuardado);
-  }
+  // Le pasamos el enlace al reproductor
+  reproductor.src = episodioActual.url;
+
+  // Esperamos a que el video reconozca su propia duración y metadata
+  reproductor.onloadedmetadata = () => {
+    if (iniciarDesdeCero) {
+      // Si el interruptor está encendido (venimos del menú), forzamos a 0
+      reproductor.currentTime = 0;
+      localStorage.setItem(`tiempo_${episodioActual.idVideo}`, 0);
+    } else {
+      // Si está apagado (venimos del Home), rescatamos el progreso
+      const tiempoGuardado = localStorage.getItem(`tiempo_${episodioActual.idVideo}`);
+      if (tiempoGuardado && parseFloat(tiempoGuardado) > 0) {
+        reproductor.currentTime = parseFloat(tiempoGuardado);
+      }
+    }
+  };
 
   if (!mostrandoSeries && !modalEpisodios.classList.contains('oculto')) {
     renderizarEpisodios(sIndex);
   }
 }
 
+// --- ACTUALIZACIÓN DE TIEMPO NORMAL, AUTOGUARDADO Y BOTONES ---
 reproductor.addEventListener('timeupdate', () => {
-  if (catalogo.length === 0) return;
+  // 1. Si no hay catálogo o estamos arrastrando la barra a mano, pausamos esta función
+  if (catalogo.length === 0 || arrastrandoBarra || isNaN(reproductor.duration)) return;
+
   const episodioActual = catalogo[serieActivaIndex].episodios[episodioActivoIndex];
   const tiempoActual = reproductor.currentTime;
 
-  // Autoguardado
+  // 2. ¡EL AUTOGUARDADO REGRESA! Salvamos el minuto exacto en la memoria local
   localStorage.setItem(`tiempo_${episodioActual.idVideo}`, tiempoActual);
 
-  // Lógica para "Omitir Intro"
+  // 3. Movemos la barra roja visualmente
+  const porcentaje = (tiempoActual / reproductor.duration) * 100;
+  barraProgreso.style.width = `${porcentaje}%`;
+  tiempoTexto.textContent = `${formatearTiempo(tiempoActual)} / ${formatearTiempo(reproductor.duration)}`;
+
+  // 4. Lógica para mostrar "Omitir Intro"
   if (tiempoActual >= episodioActual.introInicio && tiempoActual <= episodioActual.introFin) {
     btnSkipIntro.classList.remove('oculto');
   } else {
     btnSkipIntro.classList.add('oculto');
   }
 
-  // Lógica para "Omitir Ending"
+  // 5. Lógica para mostrar "Siguiente Episodio" (Ending)
   if (tiempoActual >= episodioActual.endingInicio && tiempoActual <= episodioActual.endingFin) {
     btnSkipEnding.classList.remove('oculto');
   } else {
@@ -153,7 +175,8 @@ function reproducirSiguiente() {
   localStorage.setItem(`tiempo_${episodioActual.idVideo}`, 0);
 
   if (episodioActivoIndex < serieActual.episodios.length - 1) {
-    cargarVideo(serieActivaIndex, episodioActivoIndex + 1);
+    // AQUÍ TAMBIÉN: Le pasamos 'true' para el siguiente episodio
+    cargarVideo(serieActivaIndex, episodioActivoIndex + 1, true);
     reproductor.play();
   } else {
     reproductor.pause();
@@ -197,7 +220,8 @@ function renderizarEpisodios(sIndex) {
     }
 
     li.addEventListener('click', () => {
-      cargarVideo(sIndex, eIndex);
+      // EL SECRETO ESTÁ AQUÍ: Le pasamos 'true' para decirle que inicie desde cero
+      cargarVideo(sIndex, eIndex, true);
       reproductor.play();
       modalEpisodios.classList.add('oculto');
     });
@@ -206,69 +230,73 @@ function renderizarEpisodios(sIndex) {
   });
 }
 
-// --- EVENTOS DE REPRODUCCIÓN (MOSTRAR/OCULTAR OVERLAY Y MOUSE) ---
-reproductor.addEventListener('pause', () => {
-  if (!pantallaReproductor.classList.contains('oculto')) {
-    infoPausa.classList.remove('oculto');
-  }
-});
+// --- EVENTOS DE CARGA (LOADER) ---
+reproductor.addEventListener('waiting', () => loader.classList.remove('oculto')); // Si se traba, muestra la rueda
+reproductor.addEventListener('playing', () => loader.classList.add('oculto')); // Si ya reproduce, la quita
+reproductor.addEventListener('canplay', () => loader.classList.add('oculto'));
 
-reproductor.addEventListener('play', () => {
-  infoPausa.classList.add('oculto');
-});
+// --- EVENTOS DE INTERFAZ (HOVER Y PAUSA) ---
+let timeoutInactividad;
+let timeoutPausa10s;
 
-// NUEVO: Ocultar controles y mouse si no hay movimiento
-let timeoutMouse;
+// 1. Lógica para cuando movemos el mouse (Hover)
 pantallaReproductor.addEventListener('mousemove', () => {
-  // Mostramos todo al mover el mouse
+  clearTimeout(timeoutInactividad);
+  clearTimeout(timeoutPausa10s);
+
+  // Al mover el mouse, SIEMPRE mostramos todo
   controlesVideo.classList.remove('oculto');
   btnVolverInicio.classList.remove('oculto');
   btnAbrirLista.classList.remove('oculto');
-  pantallaReproductor.style.cursor = 'default'; // Cursor normal
+  infoPausa.classList.remove('oculto');
+  pantallaReproductor.style.cursor = 'default';
 
-  clearTimeout(timeoutMouse); // Reinicia el contador
+  if (reproductor.paused) {
+    // === LA CORRECCIÓN DE ORO AQUÍ ===
+    // Si estamos en pausa, los titulares ya NO desaparecen a los 3 segundos.
+    // Se quedan fijos y visibles. Solo ocultamos la flechita del mouse para que no estorbe.
+    timeoutInactividad = setTimeout(() => {
+      pantallaReproductor.style.cursor = 'none';
+    }, 3000);
 
-  // Ocultamos todo después de 3 segundos (solo si el video está reproduciéndose)
-  timeoutMouse = setTimeout(() => {
-    if (!reproductor.paused) {
+  } else {
+    // ESTANDO EN PLAY: A los 3s desaparece todo absolutamente
+    timeoutInactividad = setTimeout(() => {
       controlesVideo.classList.add('oculto');
       btnVolverInicio.classList.add('oculto');
       btnAbrirLista.classList.add('oculto');
-      pantallaReproductor.style.cursor = 'none'; // Desaparece el mouse
-    }
-  }, 3000);
-});
-
-// --- ATAJOS DE TECLADO ---
-document.addEventListener('keydown', (e) => {
-  if (pantallaReproductor.classList.contains('oculto')) return;
-
-  switch (e.code) {
-    case 'Space':
-      e.preventDefault();
-      if (reproductor.paused) reproductor.play();
-      else reproductor.pause();
-      break;
-
-    case 'ArrowRight':
-      reproductor.currentTime += 10;
-      break;
-
-    case 'ArrowLeft':
-      reproductor.currentTime -= 10;
-      break;
-
-    case 'KeyF':
-      if (!document.fullscreenElement) {
-        pantallaReproductor.requestFullscreen().catch(err => console.log(err));
-      } else {
-        document.exitFullscreen();
-      }
-      break;
+      infoPausa.classList.add('oculto');
+      pantallaReproductor.style.cursor = 'none';
+    }, 3000);
   }
 });
 
-// --- LÓGICA DE CONTROLES PERSONALIZADOS ---
+// 2. Lógica exclusiva para cuando le damos PAUSA ("De primerazo")
+reproductor.addEventListener('pause', () => {
+  clearTimeout(timeoutInactividad);
+  clearTimeout(timeoutPausa10s);
+
+  controlesVideo.classList.remove('oculto');
+  btnVolverInicio.classList.remove('oculto');
+  btnAbrirLista.classList.remove('oculto');
+
+  // De primerazo ocultamos titulares
+  infoPausa.classList.add('oculto');
+  pantallaReproductor.style.cursor = 'default';
+
+  // Programamos el salvapantallas para que salga en 10s
+  timeoutPausa10s = setTimeout(() => {
+    infoPausa.classList.remove('oculto');
+    pantallaReproductor.style.cursor = 'none';
+  }, 0);
+});
+
+// 3. Lógica para cuando le damos PLAY
+reproductor.addEventListener('play', () => {
+  pantallaReproductor.dispatchEvent(new Event('mousemove'));
+});
+
+// --- LÓGICA DE CONTROLES PERSONALIZADOS Y SCRUBBING ---
 
 function formatearTiempo(segundos) {
   if (isNaN(segundos)) return "00:00";
@@ -285,7 +313,7 @@ btnPlayPause.addEventListener('click', () => {
 reproductor.addEventListener('play', () => btnPlayPause.textContent = '⏸');
 reproductor.addEventListener('pause', () => btnPlayPause.textContent = '▶');
 
-// NUEVO: Clic en el video directamente para pausar/reproducir
+// Clic en el video directamente
 reproductor.addEventListener('click', () => {
   if (reproductor.paused) reproductor.play();
   else reproductor.pause();
@@ -297,18 +325,104 @@ reproductor.addEventListener('timeupdate', () => {
   tiempoTexto.textContent = `${formatearTiempo(reproductor.currentTime)} / ${formatearTiempo(reproductor.duration)}`;
 });
 
-barraProgresoContenedor.addEventListener('click', (e) => {
-  const anchoTotal = barraProgresoContenedor.clientWidth;
-  const clicX = e.offsetX;
-  const nuevoTiempo = (clicX / anchoTotal) * reproductor.duration;
-  reproductor.currentTime = nuevoTiempo;
+// --- LÓGICA DE SCRUBBING (ARRASTRE GLOBAL SÚPER FLUIDO) ---
+let arrastrandoBarra = false;
+let estabaReproduciendo = false;
+let nuevoTiempoAlSoltar = 0; // Memoria para saber a qué minuto saltar al soltar el clic
+
+function actualizarTiempoVisual(e) {
+  const rect = barraProgresoContenedor.getBoundingClientRect();
+  let clicX = e.clientX - rect.left;
+
+  if (clicX < 0) clicX = 0;
+  if (clicX > rect.width) clicX = rect.width;
+
+  const porcentaje = clicX / rect.width;
+  nuevoTiempoAlSoltar = porcentaje * reproductor.duration;
+
+  // MAGIA 2: Actualizamos la barra roja y el texto AL INSTANTE (cero lag), 
+  // pero NO tocamos el reproductor.currentTime todavía.
+  barraProgreso.style.width = `${porcentaje * 100}%`;
+  tiempoTexto.textContent = `${formatearTiempo(nuevoTiempoAlSoltar)} / ${formatearTiempo(reproductor.duration)}`;
+}
+
+// 1. Cuando presionas el clic
+barraProgresoContenedor.addEventListener('mousedown', (e) => {
+  arrastrandoBarra = true;
+  estabaReproduciendo = !reproductor.paused;
+  reproductor.pause();
+
+  actualizarTiempoVisual(e);
+  // Al hacer el primer clic, sí le decimos al video que salte ahí
+  reproductor.currentTime = nuevoTiempoAlSoltar;
 });
 
-btnFullscreen.addEventListener('click', () => {
-  if (!document.fullscreenElement) {
-    pantallaReproductor.requestFullscreen().catch(err => console.log(err));
-  } else {
-    document.exitFullscreen();
+// 2. Cuando arrastras (Se mueve ultra suave porque es puro CSS, sin descargar video)
+window.addEventListener('mousemove', (e) => {
+  if (arrastrandoBarra) {
+    e.preventDefault();
+    actualizarTiempoVisual(e);
+  }
+});
+
+// 3. Cuando sueltas el clic
+window.addEventListener('mouseup', () => {
+  if (arrastrandoBarra) {
+    arrastrandoBarra = false;
+
+    // MAGIA 3: ¡Ahora sí! Le decimos al video que cargue el minuto final donde soltaste
+    reproductor.currentTime = nuevoTiempoAlSoltar;
+
+    if (estabaReproduciendo) {
+      // Un pequeño retraso para asegurar que cargó antes de darle play
+      setTimeout(() => reproductor.play(), 100);
+    }
+  }
+});
+
+// --- ATAJOS DE TECLADO Y SALTO VISUAL ---
+let timeoutSaltoAdelante;
+let timeoutSaltoAtras;
+
+// Función para mostrar el cartel y ocultarlo a los 800 milisegundos
+function mostrarIndicadorSalto(elemento, timeoutVar) {
+  clearTimeout(timeoutVar); // Borra el contador anterior si presionas muy rápido
+  elemento.classList.add('activo');
+
+  return setTimeout(() => {
+    elemento.classList.remove('activo');
+  }, 800); // 0.8 segundos de visibilidad
+}
+
+document.addEventListener('keydown', (e) => {
+  if (pantallaReproductor.classList.contains('oculto')) return;
+
+  switch (e.code) {
+    case 'Space':
+      e.preventDefault();
+      if (reproductor.paused) reproductor.play();
+      else reproductor.pause();
+      break;
+
+    case 'ArrowRight':
+      reproductor.currentTime += 10;
+      // Mostramos el +10s a la derecha
+      timeoutSaltoAdelante = mostrarIndicadorSalto(indicadorAdelantar, timeoutSaltoAdelante);
+      break;
+
+    case 'ArrowLeft':
+      reproductor.currentTime -= 10;
+      // Mostramos el -10s a la izquierda
+      timeoutSaltoAtras = mostrarIndicadorSalto(indicadorRetroceder, timeoutSaltoAtras);
+      break;
+
+    case 'KeyF':
+      if (!document.fullscreenElement) {
+        pantallaReproductor.requestFullscreen().catch(err => console.log(err));
+      } else {
+        document.exitFullscreen();
+      }
+      break;
   }
 });
 

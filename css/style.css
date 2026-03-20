@@ -43,7 +43,7 @@ body {
   font-size: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
-  z-index: 10;
+  z-index: 20;
 }
 
 .btn-flotante:hover {
@@ -249,40 +249,51 @@ body {
   }
 }
 
-/* --- OVERLAY DE PAUSA --- */
+/* --- OVERLAY DE INFORMACIÓN (Títulos sobre la barra) --- */
 .info-pausa {
   position: absolute;
-  top: 0;
+  bottom: 95px;
+  /* Justo arriba de la barra de controles inferior */
   left: 0;
   width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  /* Fondo oscuro semitransparente */
-  backdrop-filter: blur(4px);
-  /* Desenfoque elegante estilo Apple/Netflix */
+  padding: 60px 40px 15px 40px;
+  /* background: linear-gradient(to top, rgba(0, 0, 0, 0.95), transparent); */
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 5;
-  /* Por encima del video, debajo de los botones de omitir */
+  justify-content: flex-end;
+  align-items: flex-start;
+  /* Texto alineado a la izquierda */
+  z-index: 10;
   pointer-events: none;
-  /* Permite hacer clic "a través" de esta capa para usar los controles del video */
   color: white;
-  text-align: center;
+  text-align: left;
+  transition: opacity 0.5s ease;
+  /* Efecto de aparición suave */
+  z-index: 20;
+  opacity: 1;
+  transition: opacity 0.8s ease-in-out;
+  pointer-events: none;
+}
+
+.info-pausa.oculto {
+  display: flex !important;
+  /* Evita que desaparezca de golpe */
+  opacity: 0;
+  /* Lo vuelve transparente */
+  pointer-events: none;
 }
 
 .info-pausa h4 {
-  font-size: 1.5rem;
-  color: #ccc;
-  margin-bottom: 10px;
+  font-size: 1.1rem;
+  /* Más pequeño que antes */
+  color: #fff;
   font-weight: normal;
 }
 
 .info-pausa h2 {
-  font-size: 3.5rem;
+  font-size: 1.8rem;
+  /* Más pequeño que antes */
   font-weight: bold;
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
 }
 
 /* --- CONTROLES DE VIDEO PERSONALIZADOS --- */
@@ -368,6 +379,23 @@ body {
   z-index: 15;
 }
 
+.controles-video * {
+  position: relative;
+}
+
+.controles-video::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100vh;
+  pointer-events: none;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.95), transparent);
+  z-index: 0;
+}
+
+
 /* La línea por donde avanza el video */
 .barra-progreso-contenedor {
   width: 100%;
@@ -421,4 +449,69 @@ body {
   color: #ddd;
   font-family: monospace;
   /* Para que los números no salten */
+}
+
+/* --- LOADER (Rueda de carga) --- */
+.loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 5px solid rgba(255, 255, 255, 0.2);
+  border-top: 5px solid #e50914;
+  /* Rojo */
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  z-index: 20;
+  pointer-events: none;
+  /* Para no estorbar los clics */
+}
+
+@keyframes spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* --- INDICADORES DE SALTO (+10s / -10s) --- */
+.indicador-salto {
+  position: absolute;
+  top: 50%;
+  /* Los centramos verticalmente y los hacemos un 20% más pequeños por defecto */
+  transform: translateY(-50%) scale(0.8);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 15px 30px;
+  border-radius: 50px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  pointer-events: none;
+  /* Para que los clics traspasen el cartel */
+  z-index: 25;
+
+  /* Hacemos que la aparición sea suave y con efecto de zoom */
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Esta clase la pondremos y quitaremos con JavaScript */
+.indicador-salto.activo {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+  /* Efecto de "Pop" */
+}
+
+/* Posiciones a los lados */
+#indicador-retroceder {
+  left: 10%;
+}
+
+#indicador-adelantar {
+  right: 10%;
 }
