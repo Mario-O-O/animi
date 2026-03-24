@@ -10,7 +10,12 @@ body {
   background-color: #141414;
   color: #fff;
   overflow: hidden;
-  /* Evita scroll en la pantalla principal */
+  /* Esto ya lo tenías, ¡es vital dejarlo! */
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100dvh;
+  /* Le decimos al cuerpo entero que respete la altura dinámica */
 }
 
 /* El reproductor ocupa toda la pantalla */
@@ -18,6 +23,9 @@ body {
   position: relative;
   width: 100vw;
   height: 100vh;
+  /* Plan B */
+  height: 100dvh;
+  /* La magia */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -39,7 +47,7 @@ body {
   background-color: rgba(0, 0, 0, 0.7);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 4px;
+  border-radius: 17px;
   font-size: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -52,19 +60,35 @@ body {
 }
 
 /* Botón de la interfaz para abrir episodios */
-.btn-interfaz {
+.btn-interfaz,
+.btn-interfaz-home {
   position: absolute;
   top: 20px;
   left: 20px;
   padding: 10px 20px;
   background-color: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   color: white;
-  border: none;
-  border-radius: 4px;
+  border-radius: 17px;
   cursor: pointer;
   font-size: 18px;
   z-index: 10;
   transition: background 0.3s;
+}
+
+.btn-interfaz-home {
+  width: 45px;
+  height: 45px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-interfaz-home img {
+  width: 20px;
+  height: 20px;
+  transform: translateY(-2px);
 }
 
 .btn-interfaz:hover {
@@ -145,8 +169,10 @@ body {
   padding: 40px;
   width: 100vw;
   height: 100vh;
+  /* Plan B para celulares muy antiguos */
+  height: 100dvh;
+  /* La magia: Altura Dinámica */
   overflow-y: auto;
-  /* Permite scroll si hay muchas series */
   background-color: #141414;
 }
 
@@ -155,9 +181,9 @@ body {
 }
 
 .header-inicio h1 {
-  color: #e50914;
-  font-size: 2.5rem;
-  font-weight: bold;
+  color: #fff;
+  font-size: 2.2rem;
+  font-weight: lighter;
 }
 
 /* Cuadrícula adaptable para las portadas */
@@ -205,6 +231,9 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
+  /* Plan B */
+  height: 100dvh;
+  /* La magia */
   background-color: #000;
   display: flex;
   justify-content: center;
@@ -434,21 +463,18 @@ body {
   background: none;
   border: none;
   color: white;
-  font-size: 1.8rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: transform 0.2s, color 0.2s;
+}
+
+.control-btn-2 {
+  font-size: 1.5rem;
 }
 
 .control-btn:hover {
   transform: scale(1.1);
   color: #e50914;
-}
-
-#tiempo-texto {
-  font-size: 1rem;
-  color: #ddd;
-  font-family: monospace;
-  /* Para que los números no salten */
 }
 
 /* --- LOADER (Rueda de carga) --- */
@@ -514,4 +540,38 @@ body {
 
 #indicador-adelantar {
   right: 10%;
+}
+
+@media only screen and (max-width: 768px) {
+  .info-pausa h2 {
+    font-size: 1.2rem;
+  }
+
+  .info-pausa h4 {
+    font-size: 1rem;
+  }
+
+  .control-btn {
+    font-size: 0.8rem;
+  }
+
+  .control-btn-2 {
+    font-size: 1rem;
+  }
+
+  #tiempo-texto {
+    font-size: 0.6rem;
+  }
+
+  .btn-interfaz {
+    font-size: 0.8rem;
+  }
+
+  .space-x {
+    display: none;
+  }
+
+  .info-pausa {
+    bottom: 75px;
+  }
 }

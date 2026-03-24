@@ -14,6 +14,10 @@ const listaVideos = document.getElementById('lista-videos');
 const tituloModal = document.querySelector('.modal-contenido h2');
 
 const pantallaTransicion = document.getElementById('pantalla-transicion');
+const btnPrevVideo = document.getElementById('btn-prev-video');
+const btnRetroceder10 = document.getElementById('btn-retroceder-10');
+const btnAdelantar10 = document.getElementById('btn-adelantar-10');
+const btnNextVideo = document.getElementById('btn-next-video');
 
 const infoPausa = document.getElementById('info-pausa');
 const pausaSerie = document.getElementById('pausa-serie');
@@ -121,6 +125,15 @@ function cargarVideo(sIndex, eIndex, iniciarDesdeCero = false) {
       if (tiempoGuardado && parseFloat(tiempoGuardado) > 0) {
         reproductor.currentTime = parseFloat(tiempoGuardado);
       }
+    }
+
+    // Apagar botón 'Anterior' si es el primer capítulo
+    if (eIndex === 0) {
+      btnPrevVideo.style.opacity = '0.3';
+      btnPrevVideo.style.pointerEvents = 'none'; // Desactiva los clics
+    } else {
+      btnPrevVideo.style.opacity = '1';
+      btnPrevVideo.style.pointerEvents = 'auto'; // Vuelve a activar los clics
     }
   };
 
@@ -284,11 +297,11 @@ reproductor.addEventListener('pause', () => {
   infoPausa.classList.add('oculto');
   pantallaReproductor.style.cursor = 'default';
 
-  // Programamos el salvapantallas para que salga en 10s
+  // Programamos el salvapantallas para que salga en 10s (Corregido de 0 a 10000)
   timeoutPausa10s = setTimeout(() => {
     infoPausa.classList.remove('oculto');
     pantallaReproductor.style.cursor = 'none';
-  }, 0);
+  }, 10000);
 });
 
 // 3. Lógica para cuando le damos PLAY
@@ -313,16 +326,31 @@ btnPlayPause.addEventListener('click', () => {
 reproductor.addEventListener('play', () => btnPlayPause.textContent = '⏸');
 reproductor.addEventListener('pause', () => btnPlayPause.textContent = '▶');
 
-// Clic en el video directamente
-reproductor.addEventListener('click', () => {
-  if (reproductor.paused) reproductor.play();
-  else reproductor.pause();
-});
+// --- NUEVO: LÓGICA DE CLIC Y DOBLE CLIC EN EL VIDEO ---
+let temporizadorClic = null;
 
-reproductor.addEventListener('timeupdate', () => {
-  const porcentaje = (reproductor.currentTime / reproductor.duration) * 100;
-  barraProgreso.style.width = `${porcentaje}%`;
-  tiempoTexto.textContent = `${formatearTiempo(reproductor.currentTime)} / ${formatearTiempo(reproductor.duration)}`;
+reproductor.addEventListener('click', () => {
+  // Si ya hay un clic en espera, ¡significa que acabas de hacer doble clic!
+  if (temporizadorClic) {
+    clearTimeout(temporizadorClic); // Cancelamos la orden de Pausa/Play al instante
+    temporizadorClic = null;
+
+    // Ejecutamos la Pantalla Completa
+    if (!document.fullscreenElement) {
+      pantallaReproductor.requestFullscreen().catch(err => console.log(err));
+    } else {
+      document.exitFullscreen();
+    }
+  } else {
+    // Es el primer clic. Esperamos 300 milisegundos a ver si haces el segundo...
+    temporizadorClic = setTimeout(() => {
+      // Si pasaron los 300ms y no hiciste otro clic, entonces sí Pausamos/Reproducimos
+      if (reproductor.paused) reproductor.play();
+      else reproductor.pause();
+
+      temporizadorClic = null; // Reiniciamos el cerebro para el próximo clic
+    }, 300);
+  }
 });
 
 // --- LÓGICA DE SCRUBBING (ARRASTRE GLOBAL SÚPER FLUIDO) ---
@@ -425,6 +453,41 @@ document.addEventListener('keydown', (e) => {
       break;
   }
 });
+
+// --- LÓGICA DE LOS NUEVOS BOTONES DE LA BARRA ---
+
+// 1. Botones de Adelantar/Atrasar 10s
+btnRetroceder10.addEventListener('click', () => {
+  reproductor.currentTime -= 10;
+  // Reutilizamos tu animación visual en pantalla
+  timeoutSaltoAtras = mostrarIndicadorSalto(indicadorRetroceder, timeoutSaltoAtras);
+});
+
+btnAdelantar10.addEventListener('click', () => {
+  reproductor.currentTime += 10;
+  // Reutilizamos tu animación visual en pantalla
+  timeoutSaltoAdelante = mostrarIndicadorSalto(indicadorAdelantar, timeoutSaltoAdelante);
+});
+
+// 2. Botón de Siguiente Episodio
+btnNextVideo.addEventListener('click', reproducirSiguiente);
+
+// 3. Botón y Función de Episodio Anterior
+function reproducirAnterior() {
+  const serieActual = catalogo[serieActivaIndex];
+  const episodioActual = serieActual.episodios[episodioActivoIndex];
+
+  // Limpiamos el tiempo del episodio que dejamos
+  localStorage.setItem(`tiempo_${episodioActual.idVideo}`, 0);
+
+  // Verificamos que NO estemos en el episodio 1 (el índice 0)
+  if (episodioActivoIndex > 0) {
+    cargarVideo(serieActivaIndex, episodioActivoIndex - 1, true);
+    reproductor.play();
+  }
+}
+
+btnPrevVideo.addEventListener('click', reproducirAnterior);
 
 // Arrancar la aplicación
 inicializar();

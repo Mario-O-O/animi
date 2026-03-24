@@ -235,7 +235,7 @@
         "url": "https://www.dropbox.com/scl/fi/3u7ph9zk0in024xcaghfb/full-metal-alchemist-brotherhood-capitulo-26.mp4?rlkey=ocu27qljd4shfbj6mc5z1fic2&st=4wmth7d2&raw=1",
         "introInicio": 0,
         "introFin": 89,
-        "endingInicio": 1349,
+        "endingInicio": 1328,
         "endingFin": 1438
       },
       {
@@ -253,7 +253,7 @@
         "url": "https://www.dropbox.com/scl/fi/8zva2secsoucq9u35p35m/full-metal-alchemist-brotherhood-capitulo-28.mp4?rlkey=s8g677g5zuke6azo88gvsb8jd&st=vtwmg3sn&raw=1",
         "introInicio": 0,
         "introFin": 89,
-        "endingInicio": 1349,
+        "endingInicio": 1328,
         "endingFin": 1438
       },
       {
@@ -262,7 +262,7 @@
         "url": "https://www.dropbox.com/scl/fi/tdu4ecn1i0yv4m1bjf2p0/full-metal-alchemist-brotherhood-capitulo-29.mp4?rlkey=8fmv0aywsigztoffpzf10j861&st=v4x2nl0k&raw=1",
         "introInicio": 0,
         "introFin": 89,
-        "endingInicio": 1349,
+        "endingInicio": 1328,
         "endingFin": 1438
       },
       {
@@ -271,7 +271,7 @@
         "url": "https://www.dropbox.com/scl/fi/jfw59wu9fbfrdgz5gtbna/full-metal-alchemist-brotherhood-capitulo-30.mp4?rlkey=664a1kanoxnsez7q2w2dg5qcb&st=8p4rh4ai&raw=1",
         "introInicio": 0,
         "introFin": 89,
-        "endingInicio": 1349,
+        "endingInicio": 1328,
         "endingFin": 1438
       },
       {
@@ -280,7 +280,7 @@
         "url": "https://www.dropbox.com/scl/fi/2f60v0xyspiyf7qnb9ral/full-metal-alchemist-brotherhood-capitulo-31.mp4?rlkey=4iwbr3plwhs11o4z35yex98m8&st=rxsfck74&raw=1",
         "introInicio": 15,
         "introFin": 104,
-        "endingInicio": 1349,
+        "endingInicio": 1328,
         "endingFin": 1438
       },
       {
@@ -289,7 +289,7 @@
         "url": "https://www.dropbox.com/scl/fi/x3wfhx4lwzeqo7p3utbqo/full-metal-alchemist-brotherhood-capitulo-32.mp4?rlkey=1t6rd92e5hte7jyerqqtfvsxi&st=79yhuodf&raw=1",
         "introInicio": 0,
         "introFin": 89,
-        "endingInicio": 1349,
+        "endingInicio": 1328,
         "endingFin": 1438
       },
       {
@@ -298,7 +298,7 @@
         "url": "https://www.dropbox.com/scl/fi/41fv2srbjxhc92h37b1i9/full-metal-alchemist-brotherhood-capitulo-33.mp4?rlkey=qp0pb08smu0p8kfjuarcwhwel&st=5525m09v&raw=1",
         "introInicio": 0,
         "introFin": 89,
-        "endingInicio": 1349,
+        "endingInicio": 1305,
         "endingFin": 1438
       },
       {
@@ -577,6 +577,22 @@
         "url": "https://www.dropbox.com/scl/fi/zw0kbyqcd9e8lgu6k410w/full-metal-alchemist-brotherhood-capitulo-64.mp4?rlkey=td14d1evzb199dcmnktnv3kb4&st=c141b5nl&raw=1",
         "introInicio": 0,
         "introFin": 0,
+        "endingInicio": 1349,
+        "endingFin": 1438
+      }
+    ]
+  },
+  {
+    "idSerie": "serie-02",
+    "nombreSerie": "Love lab",
+    "portada": "./assets/love-lab.jpg",
+    "episodios": [
+      {
+        "idVideo": "llab-01",
+        "titulo": "Su fatídico encuentro",
+        "url": "https://www.dropbox.com/scl/fi/dx87etku3r2v1kzmmacqm/full-metal-alchemist-brotherhood-capitulo-1.mp4?rlkey=lzkkwxi1348arpvkzevl8h29q&st=flmddim9&raw=1",
+        "introInicio": 60,
+        "introFin": 147,
         "endingInicio": 1349,
         "endingFin": 1438
       }

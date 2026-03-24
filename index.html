@@ -36,8 +36,9 @@
       <h2 id="pausa-capitulo">Nombre Capítulo</h2>
     </div>
 
-    <button id="btn-volver-inicio" class="btn-interfaz" style="left: 20px;">🏠 Volver</button>
-    <button id="btn-abrir-lista" class="btn-interfaz" style="left: 140px;">☰ Episodios</button>
+    <button id="btn-volver-inicio" class="btn-interfaz btn-interfaz-home" style="left: 20px;"><img
+        src="./assets/icons/home.svg" alt=""></button>
+    <button id="btn-abrir-lista" class="btn-interfaz" style="left: 80px;">☰ Episodios</button>
 
     <button id="btn-skip-intro" class="btn-flotante oculto">Omitir Intro</button>
     <button id="btn-skip-ending" class="btn-flotante oculto">Siguiente Episodio</button>
@@ -48,9 +49,16 @@
       </div>
 
       <div class="controles-botones">
-        <button id="btn-play-pause" class="control-btn">▶</button>
+        <button id="btn-prev-video" class="control-btn control-btn-2" title="Episodio Anterior">⏮</button>
+        <button id="btn-retroceder-10" class="control-btn" title="Retroceder 10s">- 10s</button>
+
+        <button id="btn-play-pause" class="control-btn control-btn-2">▶</button>
+
+        <button id="btn-adelantar-10" class="control-btn" title="Adelantar 10s">+ 10s</button>
+        <button id="btn-next-video" class="control-btn control-btn-2" title="Siguiente Episodio">⏭</button>
+
         <span id="tiempo-texto">00:00 / 00:00</span>
-        <div style="flex-grow: 1;"></div>
+        <div style="flex-grow: 1;" class="space-x"></div>
         <button id="btn-fullscreen" class="control-btn">⛶</button>
       </div>
     </div>
